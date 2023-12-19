@@ -1,6 +1,7 @@
 #include "battleship.h"
 #include <assert.h>
 #include <iostream>
+#include <random>
 
 BattleShipGame::BattleShipGame () {
     this->player = std::vector <std::vector <Cell>> (BOARD_SIZE, std::vector <Cell> (BOARD_SIZE));
@@ -145,4 +146,72 @@ GameStatus BattleShipGame::getGameStatus () {
 
 void BattleShipGame::setGameStatus (const GameStatus &_status) {
     this->gameStatus = _status;
+}
+
+void BattleShipGame::setPlayersShips (const std::vector <std::vector <std::pair <int, int>>> &ships) {
+    this->playerShips = ships;
+}
+
+bool valid (int x, int y) {
+    return x >= 0 && y >= 0 && x < BOARD_SIZE && y < BOARD_SIZE;
+}
+
+void BattleShipGame::generateComputerShips () {
+    std::vector <int> ships_sizes = {4, 3, 3, 2, 2, 2, 1, 1, 1, 1};
+    std::vector <std::vector <std::pair <int, int>>> ships;
+    std::mt19937 rng (10039);
+
+    for (const int &size : ships_sizes) {
+        std::vector <std::pair <int, int>> ship;
+        while (true) {
+            int x = rng() % BOARD_SIZE;
+            int y = rng() % BOARD_SIZE;
+            if (x + size - 1 < BOARD_SIZE) {
+                bool ok = 0;
+                for (int j = 0; j < size; ++j) {
+                    ok |= (computer[x + j][y].get() == CellStatus::Ship);
+                    if (valid(x + j, y + 1)) {
+                        ok |= (computer[x + j][y + 1].get() == CellStatus::Ship);
+                    }
+                    if (valid(x + j, y - 1)) {
+                        ok |= (computer[x + j][y - 1].get() == CellStatus::Ship);
+                    }
+                    if (valid(x + j + 1, y)) {
+                        ok |= (computer[x + j + 1][y].get() == CellStatus::Ship);
+                    }
+                }
+                if (!ok) {
+                    for (int j = 0; j < size; ++j) {
+                        ship.push_back({x + j, y});
+                        computer[x + j][y].set(CellStatus::Ship);
+                    }
+                    ships.push_back(ship);
+                    break;
+                }
+            }
+            else if (y + size - 1 < BOARD_SIZE) {
+                bool ok = 0;
+                for (int j = 0; j < size; ++j) {
+                    ok |= (computer[x][y + j].get() == CellStatus::Ship);
+                    if (valid(x + 1, y + j)) {
+                        ok |= (computer[x + 1][y + j].get() == CellStatus::Ship);
+                    }
+                    if (valid(x - 1, y + j)) {
+                        ok |= (computer[x - 1][y + j].get() == CellStatus::Ship);
+                    }
+                    if (valid(x, y + j + 1)) {
+                        ok |= (computer[x][y + j + 1].get() == CellStatus::Ship);
+                    }
+                }
+                if (!ok) {
+                    for (int j = 0; j < size; ++j) {
+                        ship.push_back({x, y + j});
+                        computer[x][y + j].set(CellStatus::Ship);
+                    }
+                    ships.push_back(ship);
+                    break;
+                }
+            }
+        }
+    }
 }

@@ -12,6 +12,10 @@ class BattleShipGame {
         GameStatus gameStatus;
         std::vector <std::vector <Cell>> player;
         std::vector <std::vector <Cell>> computer;
+        
+        std::vector <std::vector <std::pair <int, int>>> playerShips;
+        std::vector <std::vector <std::pair <int, int>>> computerShips;
+
         bool isGameOver (const std::vector <std::vector <Cell>> &board);
         
     public:
@@ -21,4 +25,6 @@ class BattleShipGame {
         void render (sf::RenderWindow &window);
         GameStatus getGameStatus ();
         void setGameStatus (const GameStatus &_status);
+        void setPlayersShips (const std::vector <std::vector <std::pair <int, int>>> &ships);
+        void generateComputerShips ();
 };
