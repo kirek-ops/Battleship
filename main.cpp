@@ -3,7 +3,7 @@
 #include "Game_Class/battleship.h"
 
 int main () {
-    sf::RenderWindow window (sf::VideoMode(BOARD_SIZE * CELL_SIZE, BOARD_SIZE * CELL_SIZE), "Battleship Game");
+    sf::RenderWindow window (sf::VideoMode(BOARD_SIZE * CELL_SIZE * 2, BOARD_SIZE * CELL_SIZE), "Battleship Game");
     BattleShipGame game;
 
     while (window.isOpen()) {

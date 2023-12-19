@@ -10,6 +10,7 @@ class BattleShipGame {
     private:
         std::vector <std::vector <Cell>> player;
         std::vector <std::vector <Cell>> computer;
+        bool isGameOver (const std::vector <std::vector <Cell>> &board);
 
     public:
         BattleShipGame ();

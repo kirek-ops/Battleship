@@ -11,5 +11,5 @@ class Cell {
     public:
         Cell ();
         void set (const CellStatus &_status);
-        CellStatus get ();
+        CellStatus get () const;
 };

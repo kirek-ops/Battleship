@@ -8,6 +8,6 @@ void Cell::set (const CellStatus &_status) {
     this->status = _status;
 }
 
-CellStatus Cell::get () {
+CellStatus Cell::get () const {
     return this->status;
 }
