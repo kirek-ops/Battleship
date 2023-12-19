@@ -1,2 +1,2 @@
 # Battleship
-Multiplayer game Battleship in C++
+Battleship game in C++ (SFML)
