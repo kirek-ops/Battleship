@@ -3,16 +3,13 @@
 #include "Game_Class/battleship.h"
 
 int main () {
+    sf::RenderWindow window (sf::VideoMode(BOARD_SIZE * CELL_SIZE, BOARD_SIZE * CELL_SIZE), "Battleship Game");
+    BattleShipGame game;
 
+    while (window.isOpen()) {
+        game.handleInput(window);
+        game.update();
+        game.render(window);
+    }
     return 0;
 }
-
-/// i have a problems with github gpg key
-/// i need to check them 
-/// this comment was created only for with reason
-/// second try
-/// third try
-/// forth try
-/// 5th try
-/// 6th try
-/// 7th try

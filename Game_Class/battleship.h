@@ -1,20 +1,10 @@
 #include <iostream>
 #include <vector>
 #include <SFML/Graphics.hpp>
+#include "cell.h"
 
 const int BOARD_SIZE = 10;
 const int CELL_SIZE = 40;
-
-enum class CellStatus {
-    Empty, 
-    Ship,
-    Hit,
-    Miss
-};
-
-struct Cell {
-    CellStatus status;
-};
 
 class BattleShipGame {
     private:
@@ -23,5 +13,7 @@ class BattleShipGame {
 
     public:
         BattleShipGame ();
-
+        void handleInput (sf::RenderWindow &window);
+        void update ();
+        void render (sf::RenderWindow &window);
 };
