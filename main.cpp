@@ -12,17 +12,27 @@ int main () {
     while (window.isOpen()) {
         while (game.getGameStatus() == GameStatus::Arranging) {
             std::vector <int> ships_sizes = {4, 3, 3, 2, 2, 2, 1, 1, 1, 1};
+            std::vector <std::pair <int, int>> ship;
             for (int i = 0; i < ships_sizes.size(); ++i) {
                 int size = ships_sizes[i];
-                std::vector <std::pair <int, int>> ship;
                 for (int iter = 0; iter < size; ++iter) {
                     auto cell = game.handleInput(window);
                     while (cell == EMPTY_CELL) {
                         cell = game.handleInput(window);
                         game.render(window);
                     }
-                    ship.push_back(cell);
+                    
+                    if (cell.first < 0 && cell.second < 0) {
+                        cell.first = -cell.first;
+                        cell.second = -cell.second;
+                        auto iter = find(ship.begin(), ship.end(), cell);
+                        ship.erase(iter, iter + 1);
+                    }
+                    else {
+                        ship.push_back(cell);
+                    }
                 }
+    
                 sort(ship.begin(), ship.end());
                 bool ok_hor = 1, ok_ver = 1;
                 for (int i = 0; i + 1 < ship.size(); ++i) {
@@ -37,6 +47,7 @@ int main () {
 
                 if (ok_hor || ok_ver) {
                     std::cout << "Okay ship!" << std::endl;
+                    ship.clear();
                 }
                 else {
                     --i;

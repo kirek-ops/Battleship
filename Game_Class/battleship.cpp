@@ -27,6 +27,17 @@ std::pair <int, int> BattleShipGame::handleInput (sf::RenderWindow &window) {
                     }
                 }
             }
+            if (event.mouseButton.button == sf::Mouse::Right) {
+                int mouseX = event.mouseButton.x / CELL_SIZE;
+                int mouseY = event.mouseButton.y / CELL_SIZE;
+
+                if (this->gameStatus == GameStatus::Arranging) {
+                    if (mouseX < BOARD_SIZE && mouseY < BOARD_SIZE && this->player[mouseX][mouseY].get() == CellStatus::Ship) {
+                        this->player[mouseX][mouseY].set(CellStatus::Empty);
+                        return {-mouseX, -mouseY};
+                    }
+                }
+            }
         }
     }
     return {-1, -1};
