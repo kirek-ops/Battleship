@@ -3,7 +3,7 @@ enum class CellStatus {
     Ship,
     Hit,
     Miss
-};
+}; 
 
 class Cell {
     private:

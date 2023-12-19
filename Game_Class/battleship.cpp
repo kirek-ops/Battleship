@@ -3,11 +3,12 @@
 #include <iostream>
 
 BattleShipGame::BattleShipGame () {
-    player = std::vector <std::vector <Cell>> (BOARD_SIZE, std::vector <Cell> (BOARD_SIZE));
-    computer = std::vector <std::vector <Cell>> (BOARD_SIZE, std::vector <Cell> (BOARD_SIZE));
+    this->player = std::vector <std::vector <Cell>> (BOARD_SIZE, std::vector <Cell> (BOARD_SIZE));
+    this->computer = std::vector <std::vector <Cell>> (BOARD_SIZE, std::vector <Cell> (BOARD_SIZE));
+    this->gameStatus = GameStatus();
 }
 
-void BattleShipGame::handleInput (sf::RenderWindow &window) {
+std::pair <int, int> BattleShipGame::handleInput (sf::RenderWindow &window) {
     sf::Event event;
     if (window.pollEvent(event)) {
         if (event.type == sf::Event::Closed) {
@@ -19,14 +20,16 @@ void BattleShipGame::handleInput (sf::RenderWindow &window) {
                 int mouseX = event.mouseButton.x / CELL_SIZE;
                 int mouseY = event.mouseButton.y / CELL_SIZE;
 
-                // Register only if clicked on a player's board
-                // temporary (i will add a game stages)
-                if (mouseX < BOARD_SIZE) {
-                    player[mouseX][mouseY].set(CellStatus::Hit);
+                if (this->gameStatus == GameStatus::Arranging) {
+                    if (mouseX < BOARD_SIZE && mouseY < BOARD_SIZE) {
+                        this->player[mouseX][mouseY].set(CellStatus::Ship);
+                        return {mouseX, mouseY};
+                    }
                 }
             }
         }
     }
+    return {-1, -1};
 }
 
 void BattleShipGame::render (sf::RenderWindow &window) {
@@ -123,4 +126,12 @@ bool BattleShipGame::isGameOver (const std::vector <std::vector <Cell>> &board) 
         }
     }
     return true;
+}
+
+GameStatus BattleShipGame::getGameStatus () {
+    return this->gameStatus;
+}
+
+void BattleShipGame::setGameStatus (const GameStatus &_status) {
+    this->gameStatus = _status;
 }
