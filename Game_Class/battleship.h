@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <string>
 #include <SFML/Graphics.hpp>
 #include "cell.h"
 #include "game.h"
@@ -26,5 +27,5 @@ class BattleShipGame {
         GameStatus getGameStatus ();
         void setGameStatus (const GameStatus &_status);
         void setPlayersShips (const std::vector <std::vector <std::pair <int, int>>> &ships);
-        void generateComputerShips ();
+        void generateShips (const std::string &who);
 };
