@@ -4,7 +4,7 @@
 #include <random>
 #include <ctime>
 
-const bool DEBUG_MODE = 1;
+const bool DEBUG_MODE = 0;
 
 BattleShipGame::BattleShipGame () {
     this->player = std::vector <std::vector <Cell>> (BOARD_SIZE, std::vector <Cell> (BOARD_SIZE));
@@ -186,12 +186,26 @@ bool valid (int x, int y) {
     return x >= 0 && y >= 0 && x < BOARD_SIZE && y < BOARD_SIZE;
 }
 
+int count_around (int x, int y, const std::vector <std::vector <Cell>> &board) {
+    int dx[8] = {1, 1, -1, -1, 0, 0, 1, -1};
+    int dy[8] = {1, -1, 1, -1, 1, -1, 0, 0};
+    int cnt = 0;
+    for (int i = 0; i < 8; ++i) {
+        int nx = x + dx[i];
+        int ny = y + dy[i];
+        if (valid(nx, ny)) {
+            cnt += (board[nx][ny].get() == CellStatus::Ship);
+        }
+    }
+    return cnt;
+}
+
 void BattleShipGame::generateShips (const std::string &who) {
     std::vector <int> ships_sizes = {4, 3, 3, 2, 2, 2, 1, 1, 1, 1};
     std::vector <std::vector <std::pair <int, int>>> ships;
-    std::mt19937 rng ((who == "player" ? 10039 : 228));
+    std::mt19937 rng (time(0));
 
-    auto board = (who == "player" ? player : computer);
+    auto board = (who == "player" ? this->player : this->computer);
 
     for (const int &size : ships_sizes) {
         std::vector <std::pair <int, int>> ship;
@@ -200,30 +214,10 @@ void BattleShipGame::generateShips (const std::string &who) {
             int y = rng() % BOARD_SIZE;
             if (x + size - 1 < BOARD_SIZE) {
                 bool ok = 0;
-                for (int j = 0; j < size; ++j) {
-                    ok |= (board[x + j][y].get() == CellStatus::Ship);
-                    if (valid(x + j + 1, y + 1)) {
-                        ok |= (board[x + j + 1][y + 1].get() == CellStatus::Ship);
-                    }
-                    if (valid(x + j + 1, y - 1)) {
-                        ok |= (board[x + j + 1][y - 1].get() == CellStatus::Ship);
-                    }
-                    if (valid(x + j - 1, y + 1)) {
-                        ok |= (board[x + j - 1][y + 1].get() == CellStatus::Ship);
-                    }
-                    if (valid(x + j - 1, y - 1)) {
-                        ok |= (board[x + j - 1][y - 1].get() == CellStatus::Ship);
-                    }
-                    if (valid(x + j, y + 1)) {
-                        ok |= (board[x + j][y + 1].get() == CellStatus::Ship);
-                    }
-                    if (valid(x + j, y - 1)) {
-                        ok |= (board[x + j][y - 1].get() == CellStatus::Ship);
-                    }
-                    if (valid(x + j + 1, y)) {
-                        ok |= (board[x + j + 1][y].get() == CellStatus::Ship);
-                    }
-                }
+                ok |= (count_around(x, y, board) != 0);
+                for (int i = 1; i < size; ++i) {
+                    ok |= (count_around(x + i, y, board) != 0);
+                } 
                 if (!ok) {
                     for (int j = 0; j < size; ++j) {
                         ship.push_back({x + j, y});
@@ -235,30 +229,10 @@ void BattleShipGame::generateShips (const std::string &who) {
             }
             else if (y + size - 1 < BOARD_SIZE) {
                 bool ok = 0;
-                for (int j = 0; j < size; ++j) {
-                    ok |= (board[x][y + j].get() == CellStatus::Ship);
-                    if (valid(x + 1, y + j + 1)) {
-                        ok |= (board[x + 1][y + j + 1].get() == CellStatus::Ship);
-                    }
-                    if (valid(x - 1, y + j + 1)) {
-                        ok |= (board[x - 1][y + j + 1].get() == CellStatus::Ship);
-                    }
-                    if (valid(x + 1, y + j - 1)) {
-                        ok |= (board[x + 1][y + j - 1].get() == CellStatus::Ship);
-                    }
-                    if (valid(x - 1, y + j - 1)) {
-                        ok |= (board[x - 1][y + j - 1].get() == CellStatus::Ship);
-                    }
-                    if (valid(x + 1, y + j)) {
-                        ok |= (board[x + 1][y + j].get() == CellStatus::Ship);
-                    }
-                    if (valid(x - 1, y + j)) {
-                        ok |= (board[x - 1][y + j].get() == CellStatus::Ship);
-                    }
-                    if (valid(x, y + j + 1)) {
-                        ok |= (board[x][y + j + 1].get() == CellStatus::Ship);
-                    }
-                }
+                ok |= (count_around(x, y, board) != 0);
+                for (int i = 1; i < size; ++i) {
+                    ok |= (count_around(x, y + i, board) != 0);
+                } 
                 if (!ok) {
                     for (int j = 0; j < size; ++j) {
                         ship.push_back({x, y + j});
@@ -282,7 +256,7 @@ void BattleShipGame::generateShips (const std::string &who) {
 }
 
 void BattleShipGame::stupidComputerMove () {
-    std::mt19937 rng (1337);
+    std::mt19937 rng (time(0));
     while (true) {
         int x = rng() % BOARD_SIZE;
         int y = rng() % BOARD_SIZE;

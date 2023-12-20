@@ -13,15 +13,15 @@ class BattleShipGame {
         GameStatus gameStatus;
         std::vector <std::vector <Cell>> player;
         std::vector <std::vector <Cell>> computer;
-        
-        std::vector <std::vector <std::pair <int, int>>> playerShips;
-        std::vector <std::vector <std::pair <int, int>>> computerShips;
     
         bool isGameOver (const std::vector <std::vector <Cell>> &board);
 
         int winner = -1;
         
     public:
+        std::vector <std::vector <std::pair <int, int>>> playerShips;
+        std::vector <std::vector <std::pair <int, int>>> computerShips;
+
         BattleShipGame ();
         std::pair <int, int> handleInput (sf::RenderWindow &window);
         void update ();
