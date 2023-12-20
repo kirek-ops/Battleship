@@ -5,22 +5,6 @@
 
 const std::pair <int, int> EMPTY_CELL = {-1, -1};
 
-bool check_ship (std::vector <std::pair <int, int>> ship) {
-    sort(ship.begin(), ship.end());
-    bool ok_hor = 1, ok_ver = 1;
-    for (int i = 0; i + 1 < ship.size(); ++i) {
-        auto [x, y] = ship[i];
-        auto [nx, ny] = ship[i + 1]; 
-        ok_hor &= (x + 1 == nx && y == ny);
-        ok_ver &= (x == nx && y + 1 == ny);
-    }
-
-    ok_hor &= (ship.size() > 0);
-    ok_ver &= (ship.size() > 0);
-
-    return ok_hor || ok_ver;
-}
-
 int main () {
     sf::RenderWindow window (sf::VideoMode(BOARD_SIZE * CELL_SIZE * 2, BOARD_SIZE * CELL_SIZE + 100), "Battleship Game");
     BattleShipGame game;
@@ -28,11 +12,27 @@ int main () {
     game.generateShips("player");
     game.generateShips("computer");
     game.setGameStatus(GameStatus::Playing);
+    game.render(window);
 
     while (window.isOpen()) {
-        game.handleInput(window);
+        auto input = game.handleInput(window);
+        while (input == EMPTY_CELL) {
+            input = game.handleInput(window);
+            game.render(window);
+        }
+        game.stupidComputerMove();
         game.update();
         game.render(window);
+        if (game.getGameStatus() == GameStatus::Ended) {
+            // TODO: make a game restart
+            sf::Event event;
+            while (window.pollEvent(event)) {
+                if (event.type == sf::Event::Closed) {
+                    window.close();
+                    exit(0);
+                }
+            }
+        }
     }
     return 0;
 }

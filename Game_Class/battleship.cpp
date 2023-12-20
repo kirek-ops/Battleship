@@ -4,6 +4,8 @@
 #include <random>
 #include <ctime>
 
+const bool DEBUG_MODE = 1;
+
 BattleShipGame::BattleShipGame () {
     this->player = std::vector <std::vector <Cell>> (BOARD_SIZE, std::vector <Cell> (BOARD_SIZE));
     this->computer = std::vector <std::vector <Cell>> (BOARD_SIZE, std::vector <Cell> (BOARD_SIZE));
@@ -15,28 +17,23 @@ std::pair <int, int> BattleShipGame::handleInput (sf::RenderWindow &window) {
     if (window.pollEvent(event)) {
         if (event.type == sf::Event::Closed) {
             window.close();
+            exit(0);
         }
 
         if (event.type == sf::Event::MouseButtonPressed) {
             if (event.mouseButton.button == sf::Mouse::Left) {
                 int mouseX = event.mouseButton.x / CELL_SIZE;
                 int mouseY = event.mouseButton.y / CELL_SIZE;
-
-                if (this->gameStatus == GameStatus::Arranging) {
-                    if (mouseX < BOARD_SIZE && mouseY < BOARD_SIZE) {
-                        this->player[mouseX][mouseY].set(CellStatus::Ship);
-                        return {mouseX, mouseY};
+                
+                if (mouseX >= BOARD_SIZE && mouseY < BOARD_SIZE) {
+                    Cell cell = this->computer[mouseX - BOARD_SIZE][mouseY];
+                    if (cell.get() == CellStatus::Ship) {
+                        this->computer[mouseX - BOARD_SIZE][mouseY].set(CellStatus::Hit);
+                        return {mouseX - BOARD_SIZE, mouseY};
                     }
-                }
-            }
-            if (event.mouseButton.button == sf::Mouse::Right) {
-                int mouseX = event.mouseButton.x / CELL_SIZE;
-                int mouseY = event.mouseButton.y / CELL_SIZE;
-
-                if (this->gameStatus == GameStatus::Arranging) {
-                    if (mouseX < BOARD_SIZE && mouseY < BOARD_SIZE && this->player[mouseX][mouseY].get() == CellStatus::Ship) {
-                        this->player[mouseX][mouseY].set(CellStatus::Empty);
-                        return {-mouseX, -mouseY};
+                    if (cell.get() == CellStatus::Empty) {
+                        this->computer[mouseX - BOARD_SIZE][mouseY].set(CellStatus::Miss);
+                        return {mouseX - BOARD_SIZE, mouseY};
                     }
                 }
             }
@@ -46,7 +43,7 @@ std::pair <int, int> BattleShipGame::handleInput (sf::RenderWindow &window) {
 }
 
 void BattleShipGame::render (sf::RenderWindow &window) {
-    window.clear(sf::Color::White);
+    window.clear(sf::Color::Black);
 
     // Draw Player's board
     for (int i = 0; i < BOARD_SIZE; ++i) {
@@ -65,7 +62,7 @@ void BattleShipGame::render (sf::RenderWindow &window) {
                     cellRect.setFillColor(sf::Color::Blue);
                     break;
                 case CellStatus::Hit:
-                    cellRect.setFillColor(sf::Color::Red);
+                    cellRect.setFillColor(sf::Color::Cyan);
                     break;
                 case CellStatus::Miss:
                     cellRect.setFillColor(sf::Color::Green);
@@ -98,13 +95,18 @@ void BattleShipGame::render (sf::RenderWindow &window) {
                     cellRect.setFillColor(sf::Color::Blue);
                     break;
                 case CellStatus::Hit:
-                    cellRect.setFillColor(sf::Color::Red);
+                    cellRect.setFillColor(sf::Color::Cyan);
                     break;
                 case CellStatus::Miss:
                     cellRect.setFillColor(sf::Color::Green);
                     break;
                 case CellStatus::Ship:
-                    cellRect.setFillColor(sf::Color::Red);
+                    if (DEBUG_MODE) {
+                        cellRect.setFillColor(sf::Color::Red);
+                    }
+                    else {
+                        cellRect.setFillColor(sf::Color::Blue);
+                    }
                     break;
                 default:
                     assert(0);
@@ -123,11 +125,26 @@ void BattleShipGame::render (sf::RenderWindow &window) {
         window.draw(separatorBoarder);
     }
 
-    window.display();
-}
+    // Labels on the bottom
+    if (getGameStatus() == GameStatus::Ended) {
+        sf::Font font;
+        font.loadFromFile("Game_Class/Arial.ttf");
+        sf::Text label;
+        if (this->winner == 0) {
+            std::string lab = "Winner is COMPUTER! AHAHAH LOSSSER";
+            label = sf::Text(lab, font, 24);
+            label.setPosition(BOARD_SIZE * CELL_SIZE - 100, BOARD_SIZE * CELL_SIZE + 10); 
+        }
+        else {
+            std::string lab = "Winner is YOU!!";
+            label = sf::Text(lab, font, 24);
+            label.setPosition(BOARD_SIZE * CELL_SIZE - 50, BOARD_SIZE * CELL_SIZE + 10); 
+        }
+        label.setFillColor(sf::Color::White);
+        window.draw(label);
+    }
 
-void BattleShipGame::update () {
-    
+    window.display();
 }
 
 bool BattleShipGame::isGameOver (const std::vector <std::vector <Cell>> &board) {
@@ -139,6 +156,17 @@ bool BattleShipGame::isGameOver (const std::vector <std::vector <Cell>> &board) 
         }
     }
     return true;
+}
+
+void BattleShipGame::update () {
+    if (isGameOver(this->computer)) {
+        setGameStatus(GameStatus::Ended); 
+        this->winner = 1;
+    }
+    if (isGameOver(this->player)) {
+        setGameStatus(GameStatus::Ended); 
+        this->winner = 0;
+    }
 }
 
 GameStatus BattleShipGame::getGameStatus () {
@@ -245,8 +273,30 @@ void BattleShipGame::generateShips (const std::string &who) {
 
     if (who == "player") {
         player = board;
+        playerShips = ships;
     }
     else {
         computer = board;
+        computerShips = ships;
+    }
+}
+
+void BattleShipGame::stupidComputerMove () {
+    std::mt19937 rng (1337);
+    while (true) {
+        int x = rng() % BOARD_SIZE;
+        int y = rng() % BOARD_SIZE;
+        if (this->player[x][y].get() == CellStatus::Miss ||
+            this->player[x][y].get() == CellStatus::Hit) {
+            continue;
+        }
+        if (this->player[x][y].get() == CellStatus::Ship) {
+            this->player[x][y].set(CellStatus::Hit);
+            break;
+        }   
+        if (this->player[x][y].get() == CellStatus::Empty) {
+            this->player[x][y].set(CellStatus::Miss);
+            break;
+        }
     }
 }
