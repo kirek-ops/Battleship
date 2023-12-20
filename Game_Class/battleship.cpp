@@ -5,6 +5,12 @@
 #include <ctime>
 
 const bool DEBUG_MODE = 0;
+int dx[8] = {1, 1, -1, -1, 0, 0, 1, -1};
+int dy[8] = {1, -1, 1, -1, 1, -1, 0, 0};
+
+bool valid (int x, int y) {
+    return x >= 0 && y >= 0 && x < BOARD_SIZE && y < BOARD_SIZE;
+}
 
 BattleShipGame::BattleShipGame () {
     this->player = std::vector <std::vector <Cell>> (BOARD_SIZE, std::vector <Cell> (BOARD_SIZE));
@@ -59,16 +65,16 @@ void BattleShipGame::render (sf::RenderWindow &window) {
 
             switch (player[i][j].get()) {
                 case CellStatus::Empty:
-                    cellRect.setFillColor(sf::Color::Blue);
+                    cellRect.setFillColor(sf::Color::Cyan);
                     break;
                 case CellStatus::Hit:
-                    cellRect.setFillColor(sf::Color::Cyan);
+                    cellRect.setFillColor(sf::Color::Red);
                     break;
                 case CellStatus::Miss:
                     cellRect.setFillColor(sf::Color::Green);
                     break;
                 case CellStatus::Ship:
-                    cellRect.setFillColor(sf::Color::Red);
+                    cellRect.setFillColor(sf::Color (128, 128, 128));
                     break;
                 default:
                     assert(0);
@@ -92,20 +98,20 @@ void BattleShipGame::render (sf::RenderWindow &window) {
 
             switch (computer[i - BOARD_SIZE][j].get()) {
                 case CellStatus::Empty:
-                    cellRect.setFillColor(sf::Color::Blue);
+                    cellRect.setFillColor(sf::Color::Cyan);
                     break;
                 case CellStatus::Hit:
-                    cellRect.setFillColor(sf::Color::Cyan);
+                    cellRect.setFillColor(sf::Color::Red);
                     break;
                 case CellStatus::Miss:
                     cellRect.setFillColor(sf::Color::Green);
                     break;
                 case CellStatus::Ship:
                     if (DEBUG_MODE) {
-                        cellRect.setFillColor(sf::Color::Red);
+                        cellRect.setFillColor(sf::Color (128, 128, 128));
                     }
                     else {
-                        cellRect.setFillColor(sf::Color::Blue);
+                        cellRect.setFillColor(sf::Color::Cyan);
                     }
                     break;
                 default:
@@ -120,7 +126,7 @@ void BattleShipGame::render (sf::RenderWindow &window) {
     for (int i = BOARD_SIZE - 1, j = 0; j < BOARD_SIZE; ++j) {
         sf::RectangleShape separatorBoarder (sf::Vector2f(8, CELL_SIZE));
         separatorBoarder.setPosition(i * CELL_SIZE + CELL_SIZE - 4, j * CELL_SIZE);
-        separatorBoarder.setFillColor(sf::Color::White);
+        separatorBoarder.setFillColor(sf::Color::Black);
 
         window.draw(separatorBoarder);
     }
@@ -167,6 +173,43 @@ void BattleShipGame::update () {
         setGameStatus(GameStatus::Ended); 
         this->winner = 0;
     }
+
+    for (const auto &i : this->playerShips) {
+        bool ok = 1;
+        for (const auto &[x, y] : i) {
+            ok &= (this->player[x][y].get() == CellStatus::Hit);
+        }
+        if (ok) {
+            for (const auto &[x, y] : i) {
+                for (int j = 0; j < 8; ++j) {
+                    int nx = x + dx[j];
+                    int ny = y + dy[j];
+                    if (valid(nx, ny) && this->player[nx][ny].get() != CellStatus::Hit) {
+                        this->player[nx][ny].set(CellStatus::Miss);
+                    }
+                }
+            }
+            
+        }
+    }
+    for (const auto &i : this->computerShips) {
+        bool ok = 1;
+        for (const auto &[x, y] : i) {
+            ok &= (this->computer[x][y].get() == CellStatus::Hit);
+        }
+        if (ok) {
+            for (const auto &[x, y] : i) {
+                for (int j = 0; j < 8; ++j) {
+                    int nx = x + dx[j];
+                    int ny = y + dy[j];
+                    if (valid(nx, ny) && this->computer[nx][ny].get() != CellStatus::Hit) {
+                        this->computer[nx][ny].set(CellStatus::Miss);
+                    }
+                }
+            }
+            
+        }
+    }
 }
 
 GameStatus BattleShipGame::getGameStatus () {
@@ -182,13 +225,7 @@ void BattleShipGame::setPlayersShips (const std::vector <std::vector <std::pair 
     
 }
 
-bool valid (int x, int y) {
-    return x >= 0 && y >= 0 && x < BOARD_SIZE && y < BOARD_SIZE;
-}
-
 int count_around (int x, int y, const std::vector <std::vector <Cell>> &board) {
-    int dx[8] = {1, 1, -1, -1, 0, 0, 1, -1};
-    int dy[8] = {1, -1, 1, -1, 1, -1, 0, 0};
     int cnt = 0;
     for (int i = 0; i < 8; ++i) {
         int nx = x + dx[i];
