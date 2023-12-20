@@ -4,7 +4,7 @@
 #include <random>
 #include <ctime>
 
-const bool DEBUG_MODE = 0;
+const bool DEBUG_MODE = 1;
 int dx[8] = {1, 1, -1, -1, 0, 0, 1, -1};
 int dy[8] = {1, -1, 1, -1, 1, -1, 0, 0};
 
@@ -18,7 +18,7 @@ BattleShipGame::BattleShipGame () {
     this->gameStatus = GameStatus();
 }
 
-std::pair <int, int> BattleShipGame::handleInput (sf::RenderWindow &window) {
+std::tuple <int, int, bool> BattleShipGame::handleInput (sf::RenderWindow &window) {
     sf::Event event;
     if (window.pollEvent(event)) {
         if (event.type == sf::Event::Closed) {
@@ -35,17 +35,17 @@ std::pair <int, int> BattleShipGame::handleInput (sf::RenderWindow &window) {
                     Cell cell = this->computer[mouseX - BOARD_SIZE][mouseY];
                     if (cell.get() == CellStatus::Ship) {
                         this->computer[mouseX - BOARD_SIZE][mouseY].set(CellStatus::Hit);
-                        return {mouseX - BOARD_SIZE, mouseY};
+                        return {mouseX - BOARD_SIZE, mouseY, 1};
                     }
                     if (cell.get() == CellStatus::Empty) {
                         this->computer[mouseX - BOARD_SIZE][mouseY].set(CellStatus::Miss);
-                        return {mouseX - BOARD_SIZE, mouseY};
+                        return {mouseX - BOARD_SIZE, mouseY, 0};
                     }
                 }
             }
         }
     }
-    return {-1, -1};
+    return {-1, -1, 1};
 }
 
 void BattleShipGame::render (sf::RenderWindow &window) {
@@ -292,7 +292,7 @@ void BattleShipGame::generateShips (const std::string &who) {
     }
 }
 
-void BattleShipGame::stupidComputerMove () {
+bool BattleShipGame::stupidComputerMove () {
     std::mt19937 rng (time(0));
     while (true) {
         int x = rng() % BOARD_SIZE;
@@ -303,11 +303,11 @@ void BattleShipGame::stupidComputerMove () {
         }
         if (this->player[x][y].get() == CellStatus::Ship) {
             this->player[x][y].set(CellStatus::Hit);
-            break;
+            return 1;
         }   
         if (this->player[x][y].get() == CellStatus::Empty) {
             this->player[x][y].set(CellStatus::Miss);
-            break;
+            return 0;
         }
     }
 }

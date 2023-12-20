@@ -3,7 +3,7 @@
 #include <algorithm>
 #include "Game_Class/battleship.h"
 
-const std::pair <int, int> EMPTY_CELL = {-1, -1};
+const std::tuple <int, int, bool> EMPTY_CELL = {-1, -1, 1};
 
 int main () {
     sf::RenderWindow window (sf::VideoMode(BOARD_SIZE * CELL_SIZE * 2, BOARD_SIZE * CELL_SIZE + 100), "Battleship Game");
@@ -16,11 +16,19 @@ int main () {
 
     while (window.isOpen()) {
         auto input = game.handleInput(window);
-        while (input == EMPTY_CELL) {
-            input = game.handleInput(window);
+        while (true) {
+            while (input == EMPTY_CELL) {
+                input = game.handleInput(window);
+                game.update();
+                game.render(window);
+            }
+            if (std::get<2>(input) != 1) break;
+            else input = EMPTY_CELL;
+        }
+        while (game.stupidComputerMove()) {
+            game.update();
             game.render(window);
         }
-        game.stupidComputerMove();
         game.update();
         game.render(window);
         if (game.getGameStatus() == GameStatus::Ended) {

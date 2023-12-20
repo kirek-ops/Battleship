@@ -23,9 +23,9 @@ class BattleShipGame {
         std::vector <std::vector <std::pair <int, int>>> computerShips;
 
         BattleShipGame ();
-        std::pair <int, int> handleInput (sf::RenderWindow &window);
+        std::tuple <int, int, bool> handleInput (sf::RenderWindow &window);
         void update ();
-        void stupidComputerMove ();
+        bool stupidComputerMove ();
         void render (sf::RenderWindow &window);
         GameStatus getGameStatus ();
         void setGameStatus (const GameStatus &_status);
